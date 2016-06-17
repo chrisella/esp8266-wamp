@@ -11,10 +11,16 @@
 
 #include <Hash.h>
 
+#include <ArduinoJson.h>
+#include "MessageCodes.h"
+
 ESP8266WiFiMulti WiFiMulti;
 WebSocketsClient webSocket;
 
 #define USE_SERIAL Serial1
+
+// HACKING AROUND BITS, DELETE WHEN DONE////
+////////////////////////////////////////////
 
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length)
 {
@@ -74,6 +80,12 @@ void setup() {
     //webSocket.setAuthorization("user", "Password"); // HTTP Basic Authorization
     webSocket.onEvent(webSocketEvent);
 
+    StaticJsonBuffer<200> jsonBuffer;
+    JsonArray& root = jsonBuffer.createArray();
+    root.add((int)MessageCodes::HELLO);
+    root.add("somerealm");
+    root.add(jsonBuffer.createObject());
+    root.prettyPrintTo(USE_SERIAL);
 }
 
 void loop() {
