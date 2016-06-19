@@ -8,18 +8,16 @@
 
 class WampClient {
 public:
-  WampClient();
-  ~WampClient();
+    WampClient();
+    ~WampClient();
 
 
-  void onMessage (const char * str);
-  void onMessage (String str);
+    void onMessage (const char * str);
+    void onMessage (String str);
 
-  void onSendMessage (std::function<void(const char *)> sendCallback);
+    void onSendMessage (std::function<void(const char *)> sendCallback);
 
-private:
-
-    void Hello(); // Awaits Welcome
+    void Hello(const char * realm); // Awaits Welcome
     void Abort();
     void Goodbye();
     void Error();
@@ -30,6 +28,7 @@ private:
     void Register(); // Awaits Registered
     void Unregister(); // Awaits Unregistered
 
+private:
     WampState _state;
 
     std::function<void(const char *)> _sendMessage;

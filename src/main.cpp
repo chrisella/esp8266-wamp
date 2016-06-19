@@ -91,7 +91,7 @@ void setup() {
     webSocket.onEvent(webSocketEvent);
 
     wampClient.onSendMessage(onSendMessage);
-    wampClient.Hello();
+    wampClient.Hello("realm1");
 
     // StaticJsonBuffer<200> jsonBuffer;
     // JsonArray& root = jsonBuffer.createArray();
