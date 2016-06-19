@@ -16,7 +16,22 @@ WampClient::~WampClient()
 void WampClient::onMessage (const char * str)
 {
     // TODO: Deal with messages based on the current state etc
-    
+    // TODO: Copy string param into a non const version as Json can/will edit it
+    DynamicJsonBuffer jsonBuffer;
+    // TODO: Maybe switch to a static buffer if we can assure a max required size
+    JsonArray& root = jsonBuffer.parseArray(str);
+    if (!root.success())
+    {
+        // Ignore this message ?
+        return;
+    }
+    MessageCodes command = static_cast<MessageCodes>((int)(root[0]));
+    switch (command)
+    {
+        case MessageCodes::WELCOME:
+            OnWelcome();
+            break;
+    }
 }
 
 void WampClient::onMessage (String str)
@@ -89,6 +104,51 @@ void WampClient::Register()
 }
 
 void WampClient::Unregister()
+{
+
+}
+
+void WampClient::OnWelcome()
+{
+
+}
+
+void WampClient::OnAbort()
+{
+
+}
+
+void WampClient::OnGoodbye()
+{
+
+}
+
+void WampClient::OnPublished()
+{
+
+}
+
+void WampClient::OnSubscribed()
+{
+
+}
+
+void WampClient::OnUnsubscribed()
+{
+
+}
+
+void WampClient::OnResult()
+{
+
+}
+
+void WampClient::OnRegistered()
+{
+
+}
+
+void WampClient::OnUnregistered()
 {
 
 }

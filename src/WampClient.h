@@ -29,6 +29,18 @@ public:
     void Unregister(); // Awaits Unregistered
 
 private:
+
+    void OnWelcome();
+    void OnAbort();
+    void OnGoodbye();
+    void OnPublished();
+    void OnSubscribed();
+    void OnUnsubscribed();
+    void OnResult();
+    void OnRegistered();
+    void OnUnregistered();
+
+private:
     WampState _state;
 
     std::function<void(const char *)> _sendMessage;
