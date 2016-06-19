@@ -11,16 +11,26 @@
 
 #include <Hash.h>
 
-#include <ArduinoJson.h>
-#include "MessageCodes.h"
+#include <WampClient.h>
+
+//#include <ArduinoJson.h>
+//#include "MessageCodes.h"
 
 ESP8266WiFiMulti WiFiMulti;
 WebSocketsClient webSocket;
 
-#define USE_SERIAL Serial1
+WampClient wampClient;
+
+//#define USE_SERIAL Serial1
+#define USE_SERIAL Serial
 
 // HACKING AROUND BITS, DELETE WHEN DONE////
 ////////////////////////////////////////////
+
+void onSendMessage(const char * message)
+{
+    webSocket.sendTXT(message);
+}
 
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length)
 {
@@ -32,8 +42,8 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length)
             {
                 USE_SERIAL.printf("[WSc] Connected to url: %s\n",  payload);
 
-			    // send message to server when Connected
-				webSocket.sendTXT("Connected");
+                // send message to server when Connected
+                webSocket.sendTXT("[1,\"realm1\",{\"roles\":{\"publisher\":{},\"subscriber\":{}}}]");
             }
             break;
         case WStype_TEXT:
@@ -69,23 +79,26 @@ void setup() {
           delay(1000);
       }
 
-    WiFiMulti.addAP("SSID", "passpasspass");
+    WiFiMulti.addAP("MilleniumFalcon", "goldie123");
 
     //WiFi.disconnect();
     while(WiFiMulti.run() != WL_CONNECTED) {
         delay(100);
     }
 
-    webSocket.begin("192.168.0.123", 81);
-    //webSocket.setAuthorization("user", "Password"); // HTTP Basic Authorization
+    webSocket.begin("chrisella.com", 9889, "/ws", "wamp.2.json");
+    // //webSocket.setAuthorization("user", "Password"); // HTTP Basic Authorization
     webSocket.onEvent(webSocketEvent);
 
-    StaticJsonBuffer<200> jsonBuffer;
-    JsonArray& root = jsonBuffer.createArray();
-    root.add((int)MessageCodes::HELLO);
-    root.add("somerealm");
-    root.add(jsonBuffer.createObject());
-    root.prettyPrintTo(USE_SERIAL);
+    wampClient.onSendMessage(onSendMessage);
+    wampClient.Hello();
+
+    // StaticJsonBuffer<200> jsonBuffer;
+    // JsonArray& root = jsonBuffer.createArray();
+    // root.add((int)MessageCodes::HELLO);
+    // root.add("somerealm");
+    // root.add(jsonBuffer.createObject());
+    // root.prettyPrintTo(USE_SERIAL);
 }
 
 void loop() {

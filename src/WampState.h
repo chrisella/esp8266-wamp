@@ -1,0 +1,17 @@
+#ifndef __WAMP_STATE_H__
+#define __WAMP_STATE_H__
+
+enum WampState
+{   // STATE         -      Acceptable next commands
+    NOT_CONNECTED,          // [HELLO]
+    IDLE,                   // [GOODBYE, ERROR, EVENT, INVOCATION, YIELD]
+    AWAITING_WELCOME,       // [WELCOME, ABORT]
+    AWAITING_PUBLISHED,     // [PUBLISHED]
+    AWAITING_SUBSCRIBED,    // [SUBSCRIBED]
+    AWAITING_UNSUBSCRIBED,  // [UNSUBSCRIBED]
+    AWAITING_REGISTERED,    // [REGISTERED]
+    AWAITING_UNREGISTERED,  // [UNREGISTERED]
+    AWAITING_CALL_RESULT    // [RESULT]
+};
+
+#endif

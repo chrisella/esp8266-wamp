@@ -30,8 +30,8 @@
 //#define DEBUG_WEBSOCKETS(...) os_printf( __VA_ARGS__ )
 
 #ifndef DEBUG_WEBSOCKETS
-#define DEBUG_WEBSOCKETS(...)
-#define NODEBUG_WEBSOCKETS
+#define DEBUG_WEBSOCKETS(...) Serial.printf(__VA_ARGS__)
+//#define NODEBUG_WEBSOCKETS
 #endif
 
 #ifdef ESP8266
