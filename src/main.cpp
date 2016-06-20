@@ -99,6 +99,11 @@ void setup() {
     // root.add("somerealm");
     // root.add(jsonBuffer.createObject());
     // root.prettyPrintTo(USE_SERIAL);
+
+    // TEST Lambda
+    std::function<void()> testFunc = [&]() {
+        
+    };
 }
 
 void loop() {
