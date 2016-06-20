@@ -9,6 +9,8 @@ WampClient::WampClient()
   // TODO: Not sure this is the way to allocate these maps ?
   _procedures = std::map<const char *, int> ();
   _subscriptions = std::map<const char *, int> ();
+
+  _requestIdToUri = std::map<int, const char *> ();
 }
 
 WampClient::~WampClient()
@@ -41,6 +43,9 @@ void WampClient::onMessage (const char * str)
             break;
         case MessageCodes::PUBLISHED:
             OnPublished((int)root[1], (int)root[2]);
+            break;
+        case MessageCodes::SUBSCRIBED:
+            OnSubscribed((int)root[1], (int)root[2]); // topic, request id, sub id
             break;
     }
 }
@@ -96,14 +101,16 @@ void WampClient::Publish(JsonObject& options, const char * topic, JsonArray * ar
 
 void WampClient::Subscribe(JsonObject& options, const char * topic)
 {
+    int reqId = GenerateRequestId();
     StaticJsonBuffer<200> b;
     JsonArray& r = b.createArray();
     r.add((int)MessageCodes::SUBSCRIBE);
-    r.add(GenerateRequestId());
+    r.add(reqId);
     r.add(options);
     r.add(topic);
     SendJson(r);
     _state = WampState::AWAITING_SUBSCRIBED;
+    _requestIdToUri[reqId] = topic;
 }
 
 void WampClient::Unsubscribe(int subId)
@@ -135,14 +142,16 @@ void WampClient::Call(JsonObject& options, const char * procedure, JsonArray * a
 
 void WampClient::Register(JsonObject& options, const char * procedure)
 {
+    int reqId = GenerateRequestId();
     StaticJsonBuffer<200> b;
     JsonArray& r = b.createArray();
     r.add((int)MessageCodes::REGISTER);
-    r.add(GenerateRequestId());
+    r.add(reqId);
     r.add(options);
     r.add(procedure);
     SendJson(r);
     _state = WampState::AWAITING_REGISTERED;
+    _requestIdToUri[reqId] = procedure;
 }
 
 void WampClient::Unregister(int regId)
@@ -159,6 +168,7 @@ void WampClient::Unregister(int regId)
 void WampClient::OnError(MessageCodes code)
 {
     // TODO: Handle different errors based on the _state and the incoming error
+    // TODO: Remove from the _requestIdTo... maps if the failures are for a subscription or registration
 }
 
 void WampClient::OnWelcome(int sessionId, JsonObject& detailsDict)
@@ -192,13 +202,15 @@ void WampClient::OnPublished(int publishRequestId, int publicationId)
     // TODO: Compare the PublishRequestId to the original request somehow. Requires saving it somewhere temporarily
 }
 
-void WampClient::OnSubscribed(const char * topic, int subRequestId, int subId)
+void WampClient::OnSubscribed(int subRequestId, int subId)
 {
     if (_state != WampState::AWAITING_SUBSCRIBED)
     {
         // TODO: Check spec, how to handle unexpected message ordering
         return;
     }
+    const char * topic = UriFromRequestId(subRequestId);
+    RemoveRequestId(subRequestId);
     _subscriptions[topic] = subId;
 }
 
@@ -217,13 +229,15 @@ void WampClient::OnResult()
 
 }
 
-void WampClient::OnRegistered(const char * procedure, int regRequestId, int procId)
+void WampClient::OnRegistered(int regRequestId, int procId)
 {
     if (_state != WampState::AWAITING_REGISTERED)
     {
         // TODO: Check spec, how to handle unexpected message ordering
         return;
     }
+    const char * procedure = UriFromRequestId(regRequestId);
+    RemoveRequestId(regRequestId);
     _procedures[procedure] = procId;
 }
 
@@ -266,4 +280,26 @@ JsonObject& WampClient::GenerateRolesObject(JsonBuffer& buffer)
     JsonObject& o = buffer.createObject();
     // TODO: Add to roles object
     return o;
+}
+
+const char * WampClient::UriFromRequestId(int reqId)
+{
+    std::map<int, const char *>::iterator it = _requestIdToUri.find(reqId);
+    if (it == _requestIdToUri.end())
+    {
+        return NULL;
+    }
+    return it->second;
+}
+
+bool WampClient::RemoveRequestId(int reqId)
+{
+    // TODO: this could be replaced with a simple erase call without the find
+    std::map<int, const char *>::iterator it = _requestIdToUri.find(reqId);
+    if (it != _requestIdToUri.end())
+    {
+        _requestIdToUri.erase(reqId);
+        return true;
+    }
+    return false;
 }

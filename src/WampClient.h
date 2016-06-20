@@ -38,10 +38,10 @@ private:
     void OnAbort();
     void OnGoodbye();
     void OnPublished(int publishRequestId, int publicationId);
-    void OnSubscribed(const char * topic, int subRequestId, int subId);
+    void OnSubscribed(int subRequestId, int subId);
     void OnUnsubscribed(const char * topic, int unsubRequestId);
     void OnResult();
-    void OnRegistered(const char * procedure, int regRequestId, int procId);
+    void OnRegistered(int regRequestId, int procId);
     void OnUnregistered(const char * procedure, int unregRequestId);
 
     JsonObject& GenerateRolesObject(JsonBuffer& buffer);
@@ -50,6 +50,9 @@ private:
     WampState _state;
 
     int GenerateRequestId();
+
+    const char * UriFromRequestId(int reqId);
+    bool RemoveRequestId(int reqId);
 
     void SendJson(JsonObject& obj);
     void SendJson(JsonArray& arr);
@@ -60,6 +63,8 @@ private:
 
     std::map<const char *, int> _procedures;
     std::map<const char *, int> _subscriptions;
+
+    std::map<int, const char *> _requestIdToUri;
 
 };
 
