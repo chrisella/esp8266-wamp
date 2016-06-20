@@ -6,6 +6,9 @@
 WampClient::WampClient()
 {
   _state = WampState::NOT_CONNECTED;
+  // TODO: Not sure this is the way to allocate these maps ?
+  _procedures = std::map<const char *, int> ();
+  _subscriptions = std::map<const char *, int> ();
 }
 
 WampClient::~WampClient()
@@ -189,24 +192,24 @@ void WampClient::OnPublished(int publishRequestId, int publicationId)
     // TODO: Compare the PublishRequestId to the original request somehow. Requires saving it somewhere temporarily
 }
 
-void WampClient::OnSubscribed(int subRequestId, int subId)
+void WampClient::OnSubscribed(const char * topic, int subRequestId, int subId)
 {
     if (_state != WampState::AWAITING_SUBSCRIBED)
     {
         // TODO: Check spec, how to handle unexpected message ordering
         return;
     }
-    // TODO: Save the subId somewhere so we know we're subscribed and it's available for Unsubscribe if required (Save as topic -> subId dictionary/map ?)
+    _subscriptions[topic] = subId;
 }
 
-void WampClient::OnUnsubscribed(int unsubRequestId)
+void WampClient::OnUnsubscribed(const char * topic, int unsubRequestId)
 {
     if (_state != WampState::AWAITING_UNSUBSCRIBED)
     {
         // TODO: Check spec, how to handle unexpected message ordering
         return;
     }
-    // TODO: Remove subscription from local dictionary/map
+    _subscriptions.erase(topic);
 }
 
 void WampClient::OnResult()
@@ -214,24 +217,24 @@ void WampClient::OnResult()
 
 }
 
-void WampClient::OnRegistered(int registeredId)
+void WampClient::OnRegistered(const char * procedure, int regRequestId, int procId)
 {
     if (_state != WampState::AWAITING_REGISTERED)
     {
         // TODO: Check spec, how to handle unexpected message ordering
         return;
     }
-    // TODO: Save the regId to a dictionary/map for later unregistering
+    _procedures[procedure] = procId;
 }
 
-void WampClient::OnUnregistered()
+void WampClient::OnUnregistered(const char * procedure, int unregRequestId)
 {
     if (_state != WampState::AWAITING_UNREGISTERED)
     {
         // TODO: Check spec, how to handle unexpected message ordering
         return;
     }
-// TODO: Remove the registered procedure id from the local dicationary/map
+    _procedures.erase(procedure);
 }
 
 int WampClient::GenerateRequestId()

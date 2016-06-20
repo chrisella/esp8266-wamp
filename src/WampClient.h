@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <functional>
+#include <map>
 
 #include <ArduinoJson.h>
 
@@ -37,11 +38,11 @@ private:
     void OnAbort();
     void OnGoodbye();
     void OnPublished(int publishRequestId, int publicationId);
-    void OnSubscribed(int subRequestId, int subId);
-    void OnUnsubscribed(int unsubRequestId);
+    void OnSubscribed(const char * topic, int subRequestId, int subId);
+    void OnUnsubscribed(const char * topic, int unsubRequestId);
     void OnResult();
-    void OnRegistered(int registeredId);
-    void OnUnregistered();
+    void OnRegistered(const char * procedure, int regRequestId, int procId);
+    void OnUnregistered(const char * procedure, int unregRequestId);
 
     JsonObject& GenerateRolesObject(JsonBuffer& buffer);
 
@@ -54,6 +55,12 @@ private:
     void SendJson(JsonArray& arr);
     void SendString(const char * str);
     std::function<void(const char *)> _sendMessage;
+
+private:
+
+    std::map<const char *, int> _procedures;
+    std::map<const char *, int> _subscriptions;
+
 };
 
 #endif
