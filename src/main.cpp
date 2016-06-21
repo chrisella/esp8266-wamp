@@ -19,7 +19,7 @@
 ESP8266WiFiMulti WiFiMulti;
 WebSocketsClient webSocket;
 
-WampClient wampClient;
+WampClient wampClient(webSocket);
 
 //#define USE_SERIAL Serial1
 #define USE_SERIAL Serial
@@ -102,7 +102,7 @@ void setup() {
 
     // TEST Lambda
     std::function<void()> testFunc = [&]() {
-        
+
     };
 }
 

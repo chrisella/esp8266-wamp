@@ -4,18 +4,49 @@
 #include <Arduino.h>
 #include <functional>
 #include <map>
+#include <string>
 
 #include <ArduinoJson.h>
+#include <WebSocketsClient.h>
 
 #include "WampState.h"
 #include "MessageCodes.h"
 
+typedef std::function<void()> TSubscribeCallback;
+
+
 class WampClient {
 public:
-    WampClient();
+    WampClient(WebSocketsClient& transport);
     ~WampClient();
 
+    // New Methods
+    void connect(const char * realm);
+    void connect(String realm);
 
+    void disconnect(const char * realm);
+    void disconnect(String realm);
+
+    void subscribe  (const char * topic, TSubscribeCallback cb);
+    void subscribe  (std::string& topic, TSubscribeCallback cb);
+    void unsubscribe(const char * topic, TSubscribeCallback cb);
+    void unsubscribe(std::string& topic, TSubscribeCallback cb);
+
+    void publish    (const char * topic, JsonArray& args);
+    void publish    (std::string& topic, JsonArray& args);
+
+private:
+
+    void send(JsonArray& object);
+    void send(JsonObject& object);
+    void send(const char * str);
+    void send(String str);
+
+    WebSocketsClient * _transport;
+
+
+public:
+    // Old Methods
     void onMessage (const char * str);
     void onMessage (String str);
 

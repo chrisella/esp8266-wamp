@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-WampClient::WampClient()
+WampClient::WampClient(WebSocketsClient& transport)
 {
   _state = WampState::NOT_CONNECTED;
   // TODO: Not sure this is the way to allocate these maps ?
@@ -11,12 +11,73 @@ WampClient::WampClient()
   _subscriptions = std::map<const char *, int> ();
 
   _requestIdToUri = std::map<int, const char *> ();
+
+  _transport = &transport;
 }
 
 WampClient::~WampClient()
 {
 
 }
+
+/**** NEW METHODS ***/
+void WampClient::connect(String realm)
+{
+    connect(realm.c_str());
+}
+
+void WampClient::connect(const char * realm)
+{
+    StaticJsonBuffer<200> b;
+    JsonArray& r = b.createArray();
+    r.add((int)MessageCodes::HELLO);
+    r.add(realm);
+    JsonObject& o = b.createObject();
+    JsonObject& roles = b.createObject();
+    roles["publisher"] = b.createObject();
+    roles["subscriber"] = b.createObject();
+    o["roles"] = roles;
+    r.add(o);
+    // TODO: Send the array
+    send(r);
+}
+
+void WampClient::send(JsonObject& object)
+{
+    char b[256];
+    object.printTo(b, sizeof(b));
+    send((const char *)b);
+}
+
+void WampClient::send(JsonArray& arr)
+{
+    char b[256];
+    arr.printTo(b, sizeof(b));
+    send((const char *)b);
+}
+
+void WampClient::send(const char * str)
+{
+    _transport->sendTXT(str);
+}
+
+void WampClient::send(String str)
+{
+    send(str.c_str());
+}
+
+void WampClient::publish (const char * topic, JsonArray& args)
+{
+
+}
+
+void WampClient::publish (std::string& topic, JsonArray& args)
+{
+    publish(topic.c_str(), args);
+}
+
+
+/*********************/
 
 // TODO: Deal with messages based on the current state etc
 void WampClient::onMessage (const char * str)
